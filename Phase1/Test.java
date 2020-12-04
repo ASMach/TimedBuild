@@ -19,165 +19,22 @@ import javax.swing.border.TitledBorder;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
-// Assig5----------------------------------------
+// Test----------------------------------------
 
 public class Test
 {
    static int NUM_CARDS_PER_HAND = 7;
-   static int NUM_BACK_CARDS = 9;
    static int  NUM_PLAYERS = 2;
-   static JLabel[] computerLabels = new JLabel[NUM_CARDS_PER_HAND];
-   static JLabel[] computerBackCardLabels = new JLabel[NUM_BACK_CARDS];
-   static JLabel[] humanLabels = new JLabel[NUM_CARDS_PER_HAND];  
-   static JLabel[] playedCardLabels  = new JLabel[NUM_PLAYERS]; 
-   static JLabel[] playLabelText  = new JLabel[NUM_PLAYERS];
-   static JLabel[] scores = new JLabel[NUM_PLAYERS];
-   static int playerScore = 0, computerScore = 0;
+
+   static CardTableController cardTableController;
+
    public static void main(String[] args)
    {
-      int k;
-      int numPacksPerDeck = 1;
-      int numJokersPerPack = 2;
-      int numUnusedCardsPerPack = 0;
-      Card[] unusedCardsPerPack = null;
-      playerScore = 0;
-      computerScore = 0;
-      CardGameFramework LowCardGame = new CardGameFramework( 
-            numPacksPerDeck, numJokersPerPack,  
-            numUnusedCardsPerPack, unusedCardsPerPack, 
-            NUM_PLAYERS, NUM_CARDS_PER_HAND);
-
-      LowCardGame.deal();
-      // establish main frame in which program will run
-      CardTable myCardTable 
-      = new CardTable("CardTable by Team POSIXOtters", NUM_CARDS_PER_HAND, NUM_PLAYERS);
-      myCardTable.setSize(800, 600);
-      myCardTable.setLocationRelativeTo(null);
-      myCardTable.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      // show everything to the user
-      myCardTable.setVisible(true);
-      // CREATE LABELS ----------------------------------------------------
-      //create a GUICard object so we can have access to methods getIcon() and getBackCardIcon()
-      GUICard guiC = new GUICard();
-      //create JLabels for computer and human cards, we need 7 for each
-      for(k = 0; k < NUM_CARDS_PER_HAND; k++)
+      if (cardTableController != null)
       {
-         computerLabels[k] = new JLabel(GUICard.getIcon(LowCardGame.getHand(0).inspectCard(k)));
-         humanLabels[k] = new JLabel(GUICard.getIcon(LowCardGame.getHand(1).inspectCard(k)));
+         CardTableController cardTableController = new CardTableController(NUM_CARDS_PER_HAND, NUM_PLAYERS); 
       }
-      //create JLabels for the back cards, we need 9
-      for(k = 0; k < NUM_BACK_CARDS; k++)
-      {
-         computerBackCardLabels[k] = new JLabel(GUICard.getBackCardIcon());
-      }
-      //create JLabels for the text and store them in appropriate array
-      for(k = 0; k < NUM_PLAYERS; k++)
-      {
-         if(k == 0) playLabelText[k] = new JLabel("Computer", JLabel.CENTER);
-         if(k == 1) playLabelText[k] = new JLabel("You", JLabel.CENTER);
-      }
-      //create JLabels for the score
-      for(k = 0; k < NUM_PLAYERS; k++)
-      {
-         if(k == 0) scores[k] = new JLabel("SCORE", JLabel.CENTER);
-         if(k == 1) scores[k] = new JLabel("0 - 0", JLabel.CENTER);
-      }
-      //add event listeners (mouse listener) to each human card / also determines who wins
-      for (k = 0; k < NUM_CARDS_PER_HAND; k++)
-      {
-         final int index = k;
-         humanLabels[k].addMouseListener(new MouseAdapter(){
-            public void mousePressed(MouseEvent e){
-               //remove any card labels and text that are in the play area each time we play a card
-               myCardTable.getPnlPlayArea().remove(computerBackCardLabels[7]);
-               myCardTable.getPnlPlayArea().remove(computerBackCardLabels[8]);
-               myCardTable.getPnlPlayArea().remove(scores[0]);
-               myCardTable.getPnlPlayArea().remove(scores[1]);
-               for(int i = 0;i < NUM_CARDS_PER_HAND;i++)
-               {
-                  myCardTable.getPnlPlayArea().remove(computerLabels[i]);
-                  myCardTable.getPnlPlayArea().remove(humanLabels[i]);
-               }
-               //remove a card from the hand once its clicked and post it in the play area
-               computerBackCardLabels[index].setVisible(false);//make this computer back card invisible
-               humanLabels[index].setVisible(false);//make this human card invisible
-               myCardTable.getPnlPlayArea().add(computerLabels[index]);//add this card to play area
-               //check to see who won the game
-               int computerCardValue = Card.valueOfCard(LowCardGame.getHand(0).inspectCard(index));
-               int humanCardValue = Card.valueOfCard(LowCardGame.getHand(1).inspectCard(index));
-
-               //computer wins
-               if (computerCardValue < humanCardValue )
-               {
-                  computerScore++;
-                  scores[0] = new JLabel("SCORE", JLabel.CENTER);
-                  scores[1] = new JLabel(Integer.toString(computerScore) +" - "+Integer.toString(playerScore), JLabel.CENTER);
-                  myCardTable.getPnlPlayArea().add(scores[0]);
-                  myCardTable.getPnlPlayArea().add(humanLabels[index]);
-                  myCardTable.getPnlPlayArea().add(playLabelText[0]);
-                  myCardTable.getPnlPlayArea().add(scores[1]);
-                  myCardTable.getPnlPlayArea().add(playLabelText[1]);
-                  humanLabels[index].setVisible(true);//make this human card re-visible on play area
-                  updateGame();
-               }
-               //you win
-               if (humanCardValue < computerCardValue)
-               {
-                  playerScore++;
-                  scores[0] = new JLabel("SCORE", JLabel.CENTER);
-                  scores[1] = new JLabel(Integer.toString(computerScore) +" - "+Integer.toString(playerScore), JLabel.CENTER);
-                  myCardTable.getPnlPlayArea().add(scores[0]);
-                  myCardTable.getPnlPlayArea().add(humanLabels[index]);//add this card to play area
-                  myCardTable.getPnlPlayArea().add(playLabelText[0]);
-                  myCardTable.getPnlPlayArea().add(scores[1]);
-                  myCardTable.getPnlPlayArea().add(playLabelText[1]);
-                  humanLabels[index].setVisible(true);//make this human card re-visible on play area
-                  updateGame();
-               }
-               //draw
-               if (humanCardValue == computerCardValue)
-               {
-                  scores[0] = new JLabel("SCORE", JLabel.CENTER);
-                  scores[1] = new JLabel(Integer.toString(computerScore) +" - "+Integer.toString(playerScore), JLabel.CENTER);
-                  myCardTable.getPnlPlayArea().add(scores[0]);
-                  myCardTable.getPnlPlayArea().add(humanLabels[index]);//add this card to play area
-                  myCardTable.getPnlPlayArea().add(playLabelText[0]);
-                  myCardTable.getPnlPlayArea().add(scores[1]);
-                  myCardTable.getPnlPlayArea().add(playLabelText[1]);
-                  humanLabels[index].setVisible(true);//make this human card re-visible on play area
-                  updateGame();
-               }
-
-            }//end mousePressed
-            private void updateGame()
-            {
-               if(computerScore + playerScore == NUM_CARDS_PER_HAND)
-               {
-                  if (computerScore > playerScore)
-                     JOptionPane.showMessageDialog(myCardTable, "Game Over Computer Wins");     
-                  else
-                     JOptionPane.showMessageDialog(myCardTable, "Game Over You Win!");
-               }
-            }
-         });//end mouselistener
-      }//end for loop
-      // ADD LABELS TO PANELS -----------------------------------------
-      //add each Jlabel to its respective JPanel (pnlComputerHand or pnlHumanHand) from myCardTable 
-      for (k = 0; k < NUM_CARDS_PER_HAND; k++)
-      {
-         myCardTable.getPnlComputerHand().add(computerBackCardLabels[k]);
-         myCardTable.getPnlHumanHand().add(humanLabels[k]);
-      }
-      //this is the set up our play area is going to have as soon as we run the program
-      myCardTable.getPnlPlayArea().add(computerBackCardLabels[7]);
-      myCardTable.getPnlPlayArea().add(scores[0]);
-      myCardTable.getPnlPlayArea().add(computerBackCardLabels[8]);
-      myCardTable.getPnlPlayArea().add(playLabelText[0]);
-      myCardTable.getPnlPlayArea().add(scores[1]);
-      myCardTable.getPnlPlayArea().add(playLabelText[1]);
-
-      myCardTable.setVisible(true);
-   }//end main
+   }
 }
 
 
@@ -348,73 +205,218 @@ class CardGameFramework
    }
 }
 
-// CardTable----------------------------------------
+// CardTableController----------------------------------------
 
-class CardTable extends JFrame 
-{
+class CardTableController
+{   
+   static int playerScore = 0, computerScore = 0;
+
    static int MAX_CARDS_PER_HAND = 56;
    static int MAX_PLAYERS = 2;  // for now, we only allow 2 person games
 
+   static int numCardsPerHand = MAX_CARDS_PER_HAND;
+   static int numPlayers = MAX_PLAYERS;
 
-   private int numCardsPerHand;
-   private int numPlayers;
+   static int NUM_BACK_CARDS = 9;
 
+   static JLabel[] computerLabels = new JLabel[numCardsPerHand];
+   static JLabel[] computerBackCardLabels = new JLabel[NUM_BACK_CARDS];
+   static JLabel[] humanLabels = new JLabel[numCardsPerHand];  
+   static JLabel[] playedCardLabels  = new JLabel[numPlayers]; 
+   static JLabel[] playLabelText  = new JLabel[numPlayers];
+   static JLabel[] scores = new JLabel[numPlayers];
 
-   public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
+   static CardTable cardTable;
 
+   /**
+    * Constructors
+    */
 
-   public CardTable(String title, int numCardsPerHand, int numPlayers) 
+   /**
+    * Default Constructor
+    */
+
+   public CardTableController()
    {
-      //check that the data coming in is valid before proceeding 
-      if((numCardsPerHand <= MAX_CARDS_PER_HAND) && (numPlayers <= MAX_PLAYERS))
-      {
-         this.numCardsPerHand = numCardsPerHand;
-         this.numPlayers = numPlayers;
-         //give the Jframe a title and set the gridLayout
-         setTitle(title);
-         //getRootPane().setBorder(BorderFactory.createMatteBorder(8, 8, 8, 8, Color.decode("#47d147")));
-         setLayout(new GridBagLayout());
-         GridBagConstraints c = new GridBagConstraints(); 
-         c.fill = GridBagConstraints.BOTH;
-         c.weightx = 1.0;
-         c.weighty = 1.0;
-
-         //initialize the pnlComputerHand JPanel and add it to the JFrame
-         pnlComputerHand = new JPanel();
-         pnlComputerHand.setLayout(new GridLayout(0,numCardsPerHand, 10, 0));
-         pnlComputerHand.setBackground(Color.WHITE);
-         //Border line1 = BorderFactory.createTitledBorder(null, "Computer Hand", TitledBorder.LEFT, TitledBorder.TOP, new Font("sans",Font.BOLD,12), Color.BLACK);
-         //pnlComputerHand.setBorder(line1);
-         pnlComputerHand.setBorder(BorderFactory.createTitledBorder(
-               BorderFactory.createEtchedBorder(Color.WHITE, Color.WHITE), "Computer Hand", TitledBorder.LEFT, TitledBorder.TOP));
-         c.gridx = 0;
-         c.gridy = 0;
-         add(pnlComputerHand, c);
-         //initialize the pnlPlayArea JPanel and add it to the JFrame
-         pnlPlayArea = new JPanel();
-         pnlPlayArea.setLayout(new GridLayout(2, 3, 20, -50));
-         pnlPlayArea.setBackground(Color.decode("#47d147"));
-         Border blackline = BorderFactory.createLineBorder(Color.decode("#e6ac00"), 5);
-         pnlPlayArea.setBorder(blackline);
-         //Border line2 = BorderFactory.createTitledBorder(null, "Play Area", TitledBorder.LEFT, TitledBorder.TOP, new Font("sans",Font.BOLD,12), Color.BLACK);
-         //pnlPlayArea.setBorder(line2);
-         c.gridx = 0;
-         c.gridy = 2;
-         add(pnlPlayArea, c);
-         //initialize the pnlHumanHand JPanel and add it to the JFrame
-         pnlHumanHand = new JPanel();
-         pnlHumanHand.setLayout(new GridLayout(0,numCardsPerHand, 10, 0));
-         pnlHumanHand.setBackground(Color.WHITE);
-         //Border line3 = BorderFactory.createTitledBorder(null, "Your Hand", TitledBorder.LEFT, TitledBorder.TOP, new Font("sans",Font.BOLD,12), Color.BLACK);
-         //pnlHumanHand.setBorder(line3);
-         pnlHumanHand.setBorder(BorderFactory.createTitledBorder(
-               BorderFactory.createEtchedBorder(Color.WHITE, Color.WHITE), "Your Hand", TitledBorder.LEFT, TitledBorder.TOP));            
-         c.gridx = 0;
-         c.gridy = 3;
-         add(pnlHumanHand, c);    
-      }
+      init();
    }
 
+   /**
+    * @param numCardsPerHand Cards dealt to each hand
+    * @param numPlayers Number of people playing this round
+    */
+
+   public CardTableController(int numCardsPerHand, int numPlayers) 
+   {
+      //check that the data coming in is valid before proceeding, otherwise use default values
+      if((numCardsPerHand <= MAX_CARDS_PER_HAND && numCardsPerHand > 0) && (numPlayers <= MAX_PLAYERS && numPlayers > 0))
+      {
+         CardTableController.numCardsPerHand = numCardsPerHand;
+         CardTableController.numPlayers = numPlayers;
+      }
+      init();
+   }
+
+   public void init()
+   {
+      int k;
+      int numPacksPerDeck = 1;
+      int numJokersPerPack = 2;
+      int numUnusedCardsPerPack = 0;
+      Card[] unusedCardsPerPack = null;
+
+      playerScore = 0;
+      computerScore = 0;
+
+      CardGameFramework LowCardGame = new CardGameFramework( 
+            numPacksPerDeck, numJokersPerPack,  
+            numUnusedCardsPerPack, unusedCardsPerPack, 
+            numPlayers, numCardsPerHand);
+
+      LowCardGame.deal();
+
+      // Create and setup the CardTable
+      cardTable = new CardTable("CardTable by Team POSIXOtters", MAX_CARDS_PER_HAND);
+
+      cardTable.setSize(800, 600);
+      cardTable.setLocationRelativeTo(null);
+      cardTable.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+      // show everything to the user
+      cardTable.setVisible(true);
+      // CREATE LABELS ----------------------------------------------------
+      //create a GUICard object so we can have access to methods getIcon() and getBackCardIcon()
+      GUICard guiC = new GUICard();
+      //create JLabels for computer and human cards, we need 7 for each
+      for(k = 0; k < numCardsPerHand; k++)
+      {
+         computerLabels[k] = new JLabel(GUICard.getIcon(LowCardGame.getHand(0).inspectCard(k)));
+         humanLabels[k] = new JLabel(GUICard.getIcon(LowCardGame.getHand(1).inspectCard(k)));
+      }
+      //create JLabels for the back cards, we need 9
+      for(k = 0; k < NUM_BACK_CARDS; k++)
+      {
+         computerBackCardLabels[k] = new JLabel(GUICard.getBackCardIcon());
+      }
+      //create JLabels for the text and store them in appropriate array
+      for(k = 0; k < numPlayers; k++)
+      {
+         if(k == 0) playLabelText[k] = new JLabel("Computer", JLabel.CENTER);
+         if(k == 1) playLabelText[k] = new JLabel("You", JLabel.CENTER);
+      }
+      //create JLabels for the score
+      for(k = 0; k < numPlayers; k++)
+      {
+         if(k == 0) scores[k] = new JLabel("SCORE", JLabel.CENTER);
+         if(k == 1) scores[k] = new JLabel("0 - 0", JLabel.CENTER);
+      }
+      //add event listeners (mouse listener) to each human card / also determines who wins
+      for (k = 0; k < numCardsPerHand; k++)
+      {
+         humanLabels[k].addMouseListener(new MouseAdapter(){
+            public void mousePressed(MouseEvent e, int k){
+               //remove any card labels and text that are in the play area each time we play a card
+               cardTable.getPnlPlayArea().remove(computerBackCardLabels[7]);
+               cardTable.getPnlPlayArea().remove(computerBackCardLabels[8]);
+               cardTable.getPnlPlayArea().remove(scores[0]);
+               cardTable.getPnlPlayArea().remove(scores[1]);
+               for(int i = 0; i < numCardsPerHand; i++)
+               {
+                  cardTable.getPnlPlayArea().remove(computerLabels[i]);
+                  cardTable.getPnlPlayArea().remove(humanLabels[i]);
+               }
+               //remove a card from the hand once its clicked and post it in the play area
+               computerBackCardLabels[k].setVisible(false);//make this computer back card invisible
+               humanLabels[k].setVisible(false);//make this human card invisible
+               cardTable.getPnlPlayArea().add(computerLabels[k]);//add this card to play area
+               //check to see who won the game
+               int computerCardValue = Card.valueOfCard(LowCardGame.getHand(0).inspectCard(k));
+               int humanCardValue = Card.valueOfCard(LowCardGame.getHand(1).inspectCard(k));
+
+               //computer wins
+               if (computerCardValue < humanCardValue )
+               {
+                  computerScore++;
+                  scores[0] = new JLabel("SCORE", JLabel.CENTER);
+                  scores[1] = new JLabel(Integer.toString(computerScore) +" - "+Integer.toString(playerScore), JLabel.CENTER);
+                  cardTable.getPnlPlayArea().add(scores[0]);
+                  cardTable.getPnlPlayArea().add(humanLabels[k]);
+                  cardTable.getPnlPlayArea().add(playLabelText[0]);
+                  cardTable.getPnlPlayArea().add(scores[1]);
+                  cardTable.getPnlPlayArea().add(playLabelText[1]);
+                  humanLabels[k].setVisible(true);//make this human card re-visible on play area
+                  updateGame();
+               }
+               //you win
+               if (humanCardValue < computerCardValue)
+               {
+                  playerScore++;
+                  scores[0] = new JLabel("SCORE", JLabel.CENTER);
+                  scores[1] = new JLabel(Integer.toString(computerScore) +" - "+Integer.toString(playerScore), JLabel.CENTER);
+                  cardTable.getPnlPlayArea().add(scores[0]);
+                  cardTable.getPnlPlayArea().add(humanLabels[k]);//add this card to play area
+                  cardTable.getPnlPlayArea().add(playLabelText[0]);
+                  cardTable.getPnlPlayArea().add(scores[1]);
+                  cardTable.getPnlPlayArea().add(playLabelText[1]);
+                  humanLabels[k].setVisible(true);//make this human card re-visible on play area
+                  updateGame();
+               }
+               //draw
+               if (humanCardValue == computerCardValue)
+               {
+                  scores[0] = new JLabel("SCORE", JLabel.CENTER);
+                  scores[1] = new JLabel(Integer.toString(computerScore) +" - "+Integer.toString(playerScore), JLabel.CENTER);
+                  cardTable.getPnlPlayArea().add(scores[0]);
+                  cardTable.getPnlPlayArea().add(humanLabels[k]);//add this card to play area
+                  cardTable.getPnlPlayArea().add(playLabelText[0]);
+                  cardTable.getPnlPlayArea().add(scores[1]);
+                  cardTable.getPnlPlayArea().add(playLabelText[1]);
+                  humanLabels[k].setVisible(true);//make this human card re-visible on play area
+                  updateGame();
+               }
+
+            }
+            
+            private void updateGame()
+            {
+               if(computerScore + playerScore == numCardsPerHand)
+               {
+                  if (computerScore > playerScore)
+                     JOptionPane.showMessageDialog(cardTable, "Game Over Computer Wins");     
+                  else
+                     JOptionPane.showMessageDialog(cardTable, "Game Over You Win!");
+               }
+            }
+         });//end mouselistener
+      }//end for loop
+      // ADD LABELS TO PANELS -----------------------------------------
+      //add each Jlabel to its respective JPanel (pnlComputerHand or pnlHumanHand) from myCardTable 
+      for (k = 0; k < numCardsPerHand; k++)
+      {
+         cardTable.getPnlComputerHand().add(computerBackCardLabels[k]);
+         cardTable.getPnlHumanHand().add(humanLabels[k]);
+      }
+      //this is the set up our play area is going to have as soon as we run the program
+      cardTable.getPnlPlayArea().add(computerBackCardLabels[7]);
+      cardTable.getPnlPlayArea().add(scores[0]);
+      cardTable.getPnlPlayArea().add(computerBackCardLabels[8]);
+      cardTable.getPnlPlayArea().add(playLabelText[0]);
+      cardTable.getPnlPlayArea().add(scores[1]);
+      cardTable.getPnlPlayArea().add(playLabelText[1]);
+
+
+      cardTable.setVisible(true);   
+   }
+
+   
+   /**
+    * Accessors
+    */
+   
+   /**
+    * 
+    * @return
+    */
 
    public int getNumCardsPerHand()
    {
@@ -426,7 +428,61 @@ class CardTable extends JFrame
    {
       return numPlayers;
    }
+}
 
+// CardTable----------------------------------------
+
+class CardTable extends JFrame 
+{
+   public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
+
+   public CardTable(String title, int numCardsPerHand) 
+   {
+      //check that the data coming in is valid before proceeding 
+
+      //give the Jframe a title and set the gridLayout
+      setTitle(title);
+      //getRootPane().setBorder(BorderFactory.createMatteBorder(8, 8, 8, 8, Color.decode("#47d147")));
+      setLayout(new GridBagLayout());
+      GridBagConstraints c = new GridBagConstraints(); 
+      c.fill = GridBagConstraints.BOTH;
+      c.weightx = 1.0;
+      c.weighty = 1.0;
+
+      //initialize the pnlComputerHand JPanel and add it to the JFrame
+      pnlComputerHand = new JPanel();
+      pnlComputerHand.setLayout(new GridLayout(0,numCardsPerHand, 10, 0));
+      pnlComputerHand.setBackground(Color.WHITE);
+      //Border line1 = BorderFactory.createTitledBorder(null, "Computer Hand", TitledBorder.LEFT, TitledBorder.TOP, new Font("sans",Font.BOLD,12), Color.BLACK);
+      //pnlComputerHand.setBorder(line1);
+      pnlComputerHand.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createEtchedBorder(Color.WHITE, Color.WHITE), "Computer Hand", TitledBorder.LEFT, TitledBorder.TOP));
+      c.gridx = 0;
+      c.gridy = 0;
+      add(pnlComputerHand, c);
+      //initialize the pnlPlayArea JPanel and add it to the JFrame
+      pnlPlayArea = new JPanel();
+      pnlPlayArea.setLayout(new GridLayout(2, 3, 20, -50));
+      pnlPlayArea.setBackground(Color.decode("#47d147"));
+      Border blackline = BorderFactory.createLineBorder(Color.decode("#e6ac00"), 5);
+      pnlPlayArea.setBorder(blackline);
+      //Border line2 = BorderFactory.createTitledBorder(null, "Play Area", TitledBorder.LEFT, TitledBorder.TOP, new Font("sans",Font.BOLD,12), Color.BLACK);
+      //pnlPlayArea.setBorder(line2);
+      c.gridx = 0;
+      c.gridy = 2;
+      add(pnlPlayArea, c);
+      //initialize the pnlHumanHand JPanel and add it to the JFrame
+      pnlHumanHand = new JPanel();
+      pnlHumanHand.setLayout(new GridLayout(0,numCardsPerHand, 10, 0));
+      pnlHumanHand.setBackground(Color.WHITE);
+      //Border line3 = BorderFactory.createTitledBorder(null, "Your Hand", TitledBorder.LEFT, TitledBorder.TOP, new Font("sans",Font.BOLD,12), Color.BLACK);
+      //pnlHumanHand.setBorder(line3);
+      pnlHumanHand.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createEtchedBorder(Color.WHITE, Color.WHITE), "Your Hand", TitledBorder.LEFT, TitledBorder.TOP));            
+      c.gridx = 0;
+      c.gridy = 3;
+      add(pnlHumanHand, c);    
+   }
 
    public JPanel getPnlComputerHand()
    {
