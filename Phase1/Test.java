@@ -225,6 +225,8 @@ class CardTableController
    static JLabel[] playedCardLabels  = new JLabel[numPlayers]; 
    static JLabel[] playLabelText  = new JLabel[numPlayers];
    static JLabel[] scores = new JLabel[numPlayers];
+   
+   static CardGameFramework lowCardGame;
 
    static CardTable cardTable;
 
@@ -268,12 +270,12 @@ class CardTableController
       playerScore = 0;
       computerScore = 0;
 
-      CardGameFramework LowCardGame = new CardGameFramework( 
+      lowCardGame = new CardGameFramework( 
             numPacksPerDeck, numJokersPerPack,  
             numUnusedCardsPerPack, unusedCardsPerPack, 
             numPlayers, numCardsPerHand);
 
-      LowCardGame.deal();
+      lowCardGame.deal();
 
       // Create and setup the CardTable
       cardTable = new CardTable("CardTable by Team POSIXOtters", MAX_CARDS_PER_HAND);
@@ -287,29 +289,9 @@ class CardTableController
       // CREATE LABELS ----------------------------------------------------
       //create a GUICard object so we can have access to methods getIcon() and getBackCardIcon()
       GUICard guiC = new GUICard();
-      //create JLabels for computer and human cards, we need 7 for each
-      for(k = 0; k < numCardsPerHand; k++)
-      {
-         computerLabels[k] = new JLabel(GUICard.getIcon(LowCardGame.getHand(0).inspectCard(k)));
-         humanLabels[k] = new JLabel(GUICard.getIcon(LowCardGame.getHand(1).inspectCard(k)));
-      }
-      //create JLabels for the back cards, we need 9
-      for(k = 0; k < NUM_BACK_CARDS; k++)
-      {
-         computerBackCardLabels[k] = new JLabel(GUICard.getBackCardIcon());
-      }
-      //create JLabels for the text and store them in appropriate array
-      for(k = 0; k < numPlayers; k++)
-      {
-         if(k == 0) playLabelText[k] = new JLabel("Computer", JLabel.CENTER);
-         if(k == 1) playLabelText[k] = new JLabel("You", JLabel.CENTER);
-      }
-      //create JLabels for the score
-      for(k = 0; k < numPlayers; k++)
-      {
-         if(k == 0) scores[k] = new JLabel("SCORE", JLabel.CENTER);
-         if(k == 1) scores[k] = new JLabel("0 - 0", JLabel.CENTER);
-      }
+      
+      fillJLabels();
+      
       //add event listeners (mouse listener) to each human card / also determines who wins
       for (k = 0; k < numCardsPerHand; k++)
       {
@@ -330,8 +312,8 @@ class CardTableController
                humanLabels[k].setVisible(false);//make this human card invisible
                cardTable.getPnlPlayArea().add(computerLabels[k]);//add this card to play area
                //check to see who won the game
-               int computerCardValue = Card.valueOfCard(LowCardGame.getHand(0).inspectCard(k));
-               int humanCardValue = Card.valueOfCard(LowCardGame.getHand(1).inspectCard(k));
+               int computerCardValue = Card.valueOfCard(lowCardGame.getHand(0).inspectCard(k));
+               int humanCardValue = Card.valueOfCard(lowCardGame.getHand(1).inspectCard(k));
 
                //computer wins
                if (computerCardValue < humanCardValue )
@@ -406,6 +388,39 @@ class CardTableController
 
 
       cardTable.setVisible(true);   
+   }
+   
+   /**
+    * Helpers
+    */
+   
+   void fillJLabels()
+   {
+      int k;
+      
+    //create JLabels for computer and human cards, we need 7 for each
+      for(k = 0; k < numCardsPerHand; k++)
+      {
+         computerLabels[k] = new JLabel(GUICard.getIcon(lowCardGame.getHand(0).inspectCard(k)));
+         humanLabels[k] = new JLabel(GUICard.getIcon(lowCardGame.getHand(1).inspectCard(k)));
+      }
+      //create JLabels for the back cards, we need 9
+      for(k = 0; k < NUM_BACK_CARDS; k++)
+      {
+         computerBackCardLabels[k] = new JLabel(GUICard.getBackCardIcon());
+      }
+      //create JLabels for the text and store them in appropriate array
+      for(k = 0; k < numPlayers; k++)
+      {
+         if(k == 0) playLabelText[k] = new JLabel("Computer", JLabel.CENTER);
+         if(k == 1) playLabelText[k] = new JLabel("You", JLabel.CENTER);
+      }
+      //create JLabels for the score
+      for(k = 0; k < numPlayers; k++)
+      {
+         if(k == 0) scores[k] = new JLabel("SCORE", JLabel.CENTER);
+         if(k == 1) scores[k] = new JLabel("0 - 0", JLabel.CENTER);
+      }
    }
 
    
