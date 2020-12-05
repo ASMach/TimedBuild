@@ -19,7 +19,11 @@ import javax.swing.border.TitledBorder;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
-// Test----------------------------------------
+/**
+ * 
+ * Test Class
+ *
+ */
 
 public class Test
 {
@@ -28,17 +32,29 @@ public class Test
 
    static CardTableController cardTableController;
 
+   static GameModel gameModel;
+
    public static void main(String[] args)
    {
+      // Instantiate model first but it must be checked
+      if (gameModel != null)
+      {
+         gameModel = new GameModel();
+      }
+      // Now instantiate the controller
       if (cardTableController != null)
       {
-         CardTableController cardTableController = new CardTableController(NUM_CARDS_PER_HAND, NUM_PLAYERS); 
+         CardTableController cardTableController = new CardTableController(gameModel, NUM_CARDS_PER_HAND, NUM_PLAYERS); 
       }
    }
 }
 
 
-// CardGameFramework----------------------------------------
+/**
+ * 
+ * CardGameFramework Class
+ *
+ */
 
 class CardGameFramework
 {
@@ -205,30 +221,148 @@ class CardGameFramework
    }
 }
 
-// CardTableController----------------------------------------
+/**
+ * CardGameModel Class
+ */
+
+class GameModel 
+{
+   int playerScore = 0, computerScore = 0;
+
+   final static int MAX_CARDS_PER_HAND = 56;
+   final static int MAX_PLAYERS = 2;  // for now, we only allow 2 person games
+
+   int numCardsPerHand = MAX_CARDS_PER_HAND;
+   int numPlayers = MAX_PLAYERS;
+
+   final static int NUM_BACK_CARDS = 9;
+
+   /**
+    * Increase player score by 1
+    */
+   public void incrementPlayerScore()
+   {
+      playerScore++;
+   }
+
+   /**
+    * Increase computer score by 1
+    */
+   public void incrementComputerScore()
+   {
+      computerScore++;
+   }
+
+   /**
+    * Reset scores to 0
+    */
+   public void resetScores()
+   {
+      playerScore = 0;
+      computerScore = 0;
+   }
+
+   /**
+    * Mutators
+    */
+
+   /**
+    * 
+    * @param numCardsPerHand How many cards to allow per hand
+    * @return Was the number of cards per had set succesfully?
+    */
+   public boolean setNumCardsPerHand(int numCardsPerHand)
+   {
+      if (numCardsPerHand <= MAX_CARDS_PER_HAND && numCardsPerHand > 0)
+      {
+         this.numCardsPerHand = numCardsPerHand;
+         return true;
+      }
+      else
+      {
+         return false;
+      }
+   }
+
+   /**
+    * 
+    * @param numPlayers How many players this game has
+    * @return Was the number of players successfully set?
+    */
+   public boolean setNumPlayers(int numPlayers)
+   {
+      if (numPlayers <= MAX_PLAYERS && numPlayers > 0)
+      {
+         this.numPlayers = numPlayers;
+         return true;
+      }
+      else
+      {
+         return false;
+      }
+   }
+
+   /**
+    * Accessors
+    */
+
+   /**
+    * 
+    * @return Number of cards allowed per hand
+    */
+   public int getNumCardsPerHand()
+   {
+      return numCardsPerHand;
+   }
+
+   /**
+    * 
+    * @return Number of players in the game
+    */
+   public int getNumPlayers()
+   {
+      return numPlayers;
+   }
+
+   /**
+    * 
+    * @return Player's score
+    */
+   public int getPlayerScore()
+   {
+      return playerScore;
+   }
+
+   /**
+    * 
+    * @return Computer's score
+    */
+   public int getComputerScore()
+   {
+      return computerScore;
+   }
+}
+
+/**
+ * 
+ * CardTableController Class
+ *
+ */
 
 class CardTableController
 {   
-   static int playerScore = 0, computerScore = 0;
+   static JLabel[] computerLabels;
+   static JLabel[] computerBackCardLabels;
+   static JLabel[] humanLabels;  
+   static JLabel[] playedCardLabels;
+   static JLabel[] playLabelText;
+   static JLabel[] scores;
 
-   static int MAX_CARDS_PER_HAND = 56;
-   static int MAX_PLAYERS = 2;  // for now, we only allow 2 person games
-
-   static int numCardsPerHand = MAX_CARDS_PER_HAND;
-   static int numPlayers = MAX_PLAYERS;
-
-   static int NUM_BACK_CARDS = 9;
-
-   static JLabel[] computerLabels = new JLabel[numCardsPerHand];
-   static JLabel[] computerBackCardLabels = new JLabel[NUM_BACK_CARDS];
-   static JLabel[] humanLabels = new JLabel[numCardsPerHand];  
-   static JLabel[] playedCardLabels  = new JLabel[numPlayers]; 
-   static JLabel[] playLabelText  = new JLabel[numPlayers];
-   static JLabel[] scores = new JLabel[numPlayers];
-   
    static CardGameFramework lowCardGame;
 
    static CardTable cardTable;
+
+   GameModel gameModel = new GameModel();
 
    /**
     * Constructors
@@ -244,21 +378,27 @@ class CardTableController
    }
 
    /**
+    * @param gameModel Data model for the game
     * @param numCardsPerHand Cards dealt to each hand
     * @param numPlayers Number of people playing this round
     */
 
-   public CardTableController(int numCardsPerHand, int numPlayers) 
+   public CardTableController(GameModel gameModel, int numCardsPerHand, int numPlayers) 
    {
+      this.gameModel = gameModel;
+
       //check that the data coming in is valid before proceeding, otherwise use default values
-      if((numCardsPerHand <= MAX_CARDS_PER_HAND && numCardsPerHand > 0) && (numPlayers <= MAX_PLAYERS && numPlayers > 0))
+      if((numCardsPerHand <= GameModel.MAX_CARDS_PER_HAND && numCardsPerHand > 0) && (numPlayers <= GameModel.MAX_PLAYERS && numPlayers > 0))
       {
-         CardTableController.numCardsPerHand = numCardsPerHand;
-         CardTableController.numPlayers = numPlayers;
+         this.gameModel.setNumCardsPerHand(numCardsPerHand);
+         this.gameModel.setNumPlayers(numPlayers);
       }
       init();
    }
 
+   /**
+    * Initialize our basic data
+    */
    public void init()
    {
       int k;
@@ -267,18 +407,17 @@ class CardTableController
       int numUnusedCardsPerPack = 0;
       Card[] unusedCardsPerPack = null;
 
-      playerScore = 0;
-      computerScore = 0;
+      gameModel.resetScores();
 
       lowCardGame = new CardGameFramework( 
             numPacksPerDeck, numJokersPerPack,  
             numUnusedCardsPerPack, unusedCardsPerPack, 
-            numPlayers, numCardsPerHand);
+            gameModel.getNumPlayers(), gameModel.getNumCardsPerHand());
 
       lowCardGame.deal();
 
       // Create and setup the CardTable
-      cardTable = new CardTable("CardTable by Team POSIXOtters", MAX_CARDS_PER_HAND);
+      cardTable = new CardTable("CardTable by Team POSIXOtters", GameModel.MAX_CARDS_PER_HAND);
 
       cardTable.setSize(800, 600);
       cardTable.setLocationRelativeTo(null);
@@ -289,11 +428,11 @@ class CardTableController
       // CREATE LABELS ----------------------------------------------------
       //create a GUICard object so we can have access to methods getIcon() and getBackCardIcon()
       GUICard guiC = new GUICard();
-      
+
       fillJLabels();
-      
+
       //add event listeners (mouse listener) to each human card / also determines who wins
-      for (k = 0; k < numCardsPerHand; k++)
+      for (k = 0; k < gameModel.getNumCardsPerHand(); k++)
       {
          humanLabels[k].addMouseListener(new MouseAdapter(){
             public void mousePressed(MouseEvent e, int k){
@@ -302,7 +441,7 @@ class CardTableController
                cardTable.getPnlPlayArea().remove(computerBackCardLabels[8]);
                cardTable.getPnlPlayArea().remove(scores[0]);
                cardTable.getPnlPlayArea().remove(scores[1]);
-               for(int i = 0; i < numCardsPerHand; i++)
+               for(int i = 0; i < gameModel.getNumCardsPerHand(); i++)
                {
                   cardTable.getPnlPlayArea().remove(computerLabels[i]);
                   cardTable.getPnlPlayArea().remove(humanLabels[i]);
@@ -318,9 +457,9 @@ class CardTableController
                //computer wins
                if (computerCardValue < humanCardValue )
                {
-                  computerScore++;
+                  gameModel.incrementComputerScore();
                   scores[0] = new JLabel("SCORE", JLabel.CENTER);
-                  scores[1] = new JLabel(Integer.toString(computerScore) +" - "+Integer.toString(playerScore), JLabel.CENTER);
+                  scores[1] = new JLabel(Integer.toString(gameModel.getComputerScore()) +" - "+Integer.toString(gameModel.getPlayerScore()), JLabel.CENTER);
                   cardTable.getPnlPlayArea().add(scores[0]);
                   cardTable.getPnlPlayArea().add(humanLabels[k]);
                   cardTable.getPnlPlayArea().add(playLabelText[0]);
@@ -332,9 +471,9 @@ class CardTableController
                //you win
                if (humanCardValue < computerCardValue)
                {
-                  playerScore++;
+                  gameModel.incrementPlayerScore();
                   scores[0] = new JLabel("SCORE", JLabel.CENTER);
-                  scores[1] = new JLabel(Integer.toString(computerScore) +" - "+Integer.toString(playerScore), JLabel.CENTER);
+                  scores[1] = new JLabel(Integer.toString(gameModel.getComputerScore()) +" - "+Integer.toString(gameModel.getPlayerScore()), JLabel.CENTER);
                   cardTable.getPnlPlayArea().add(scores[0]);
                   cardTable.getPnlPlayArea().add(humanLabels[k]);//add this card to play area
                   cardTable.getPnlPlayArea().add(playLabelText[0]);
@@ -347,7 +486,7 @@ class CardTableController
                if (humanCardValue == computerCardValue)
                {
                   scores[0] = new JLabel("SCORE", JLabel.CENTER);
-                  scores[1] = new JLabel(Integer.toString(computerScore) +" - "+Integer.toString(playerScore), JLabel.CENTER);
+                  scores[1] = new JLabel(Integer.toString(gameModel.getComputerScore()) +" - "+Integer.toString(gameModel.getPlayerScore()), JLabel.CENTER);
                   cardTable.getPnlPlayArea().add(scores[0]);
                   cardTable.getPnlPlayArea().add(humanLabels[k]);//add this card to play area
                   cardTable.getPnlPlayArea().add(playLabelText[0]);
@@ -358,10 +497,13 @@ class CardTableController
                }
 
             }
-            
+
             private void updateGame()
             {
-               if(computerScore + playerScore == numCardsPerHand)
+               final int computerScore = gameModel.getComputerScore();
+               final int playerScore = gameModel.getPlayerScore();
+
+               if(computerScore + playerScore == gameModel.getNumCardsPerHand())
                {
                   if (computerScore > playerScore)
                      JOptionPane.showMessageDialog(cardTable, "Game Over Computer Wins");     
@@ -373,6 +515,8 @@ class CardTableController
       }//end for loop
       // ADD LABELS TO PANELS -----------------------------------------
       //add each Jlabel to its respective JPanel (pnlComputerHand or pnlHumanHand) from myCardTable 
+      final int numCardsPerHand = gameModel.getNumCardsPerHand();
+
       for (k = 0; k < numCardsPerHand; k++)
       {
          cardTable.getPnlComputerHand().add(computerBackCardLabels[k]);
@@ -389,26 +533,40 @@ class CardTableController
 
       cardTable.setVisible(true);   
    }
-   
+
    /**
     * Helpers
     */
-   
+
+   void createJLabels()
+   {
+      computerLabels = new JLabel[gameModel.getNumCardsPerHand()];
+      computerBackCardLabels = new JLabel[GameModel.NUM_BACK_CARDS];
+      humanLabels = new JLabel[gameModel.getNumCardsPerHand()];  
+      playedCardLabels  = new JLabel[gameModel.getNumPlayers()]; 
+      playLabelText  = new JLabel[gameModel.getNumPlayers()];
+      scores = new JLabel[gameModel.getNumPlayers()];
+   }
+
    void fillJLabels()
    {
+      final int numCardsPerHand = gameModel.getNumCardsPerHand();
+      final int numPlayers = gameModel.getNumPlayers();
+
       int k;
-      
-    //create JLabels for computer and human cards, we need 7 for each
+
+      //create JLabels for computer and human cards, we need 7 for each
       for(k = 0; k < numCardsPerHand; k++)
       {
          computerLabels[k] = new JLabel(GUICard.getIcon(lowCardGame.getHand(0).inspectCard(k)));
          humanLabels[k] = new JLabel(GUICard.getIcon(lowCardGame.getHand(1).inspectCard(k)));
       }
       //create JLabels for the back cards, we need 9
-      for(k = 0; k < NUM_BACK_CARDS; k++)
+      for(k = 0; k < GameModel.NUM_BACK_CARDS; k++)
       {
          computerBackCardLabels[k] = new JLabel(GUICard.getBackCardIcon());
       }
+
       //create JLabels for the text and store them in appropriate array
       for(k = 0; k < numPlayers; k++)
       {
@@ -423,11 +581,11 @@ class CardTableController
       }
    }
 
-   
+
    /**
     * Accessors
     */
-   
+
    /**
     * 
     * @return
@@ -435,17 +593,21 @@ class CardTableController
 
    public int getNumCardsPerHand()
    {
-      return numCardsPerHand;
+      return gameModel.getNumCardsPerHand();
    }
 
 
    public int getNumPlayers()
    {
-      return numPlayers;
+      return gameModel.getNumPlayers();
    }
 }
 
-// CardTable----------------------------------------
+/**
+ * 
+ * CardTable Class
+ *
+ */
 
 class CardTable extends JFrame 
 {
@@ -517,7 +679,11 @@ class CardTable extends JFrame
    }
 }
 
-// Deck----------------------------------------
+/**
+ * 
+ * Deck Class
+ *
+ */
 
 class Deck
 { 
@@ -753,7 +919,11 @@ class Deck
 }
 
 
-// GUICard----------------------------------------
+/**
+ * 
+ * GUICard Class
+ *
+ */
 
 class GUICard
 {
@@ -775,7 +945,9 @@ class GUICard
       }           
    }
 
-
+   /**
+    * Load all the icon images 
+    */
    static void loadCardIcons()
    {
       // build the file names ("AC.gif", "2C.gif", "3C.gif", "TC.gif", etc.)
@@ -885,7 +1057,11 @@ class GUICard
    }
 }
 
-// Card----------------------------------------
+/**
+ * 
+ * Card Class
+ *
+ */
 
 class Card
 {
@@ -1085,7 +1261,11 @@ class Card
    }
 }
 
-// Hand----------------------------------------
+/**
+ * 
+ * Hand Class
+ *
+ */
 
 class Hand
 {
