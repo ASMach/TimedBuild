@@ -1,6 +1,4 @@
-//Initial
-//Testing comment
-package Phase1;
+package Phase2;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
