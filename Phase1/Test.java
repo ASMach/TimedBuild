@@ -36,7 +36,6 @@ public class Test
    
    public static void main(String[] args)
    {
-      System.out.println("TIMEDBUILD");
       // Instantiate model first but it must be checked
       if (gameModel == null)
       {
