@@ -33,16 +33,17 @@ public class Test
    static CardTableController cardTableController;
 
    static GameModel gameModel;
-
+   
    public static void main(String[] args)
    {
+      System.out.println("TIMEDBUILD");
       // Instantiate model first but it must be checked
-      if (gameModel != null)
+      if (gameModel == null)
       {
          gameModel = new GameModel();
       }
       // Now instantiate the controller
-      if (cardTableController != null)
+      if (cardTableController == null)
       {
          CardTableController cardTableController = new CardTableController(gameModel, NUM_CARDS_PER_HAND, NUM_PLAYERS); 
       }
@@ -360,7 +361,7 @@ class CardTableController
 
    static CardGameFramework lowCardGame;
 
-   static CardTable cardTable;
+   CardTable cardTable;
 
    GameModel gameModel = new GameModel();
 
@@ -606,7 +607,7 @@ class CardTableController
 /**
  * 
  * CardTable Class
- *
+ * This class is the view of the MVC paradigm
  */
 
 class CardTable extends JFrame 
