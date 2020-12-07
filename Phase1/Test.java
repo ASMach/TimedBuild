@@ -3,11 +3,15 @@
 package Phase1;
 
 import javax.swing.*;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Random;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -229,7 +233,7 @@ class CardGameFramework
 
 class GameModel 
 {
-   int playerScore = 0, computerScore = 0;
+   int playerScore = 0, computerScore = 0, count = 0;
 
    final static int MAX_CARDS_PER_HAND = 56;
    final static int MAX_PLAYERS = 2;  // for now, we only allow 2 person games
@@ -253,6 +257,11 @@ class GameModel
    public void incrementComputerScore()
    {
       computerScore++;
+   }
+   
+   public void incrementCount()
+   {
+      count++;
    }
 
    /**
@@ -342,6 +351,15 @@ class GameModel
    public int getComputerScore()
    {
       return computerScore;
+   }
+   
+   /**
+    * 
+    * @return
+    */
+   public int getCount()
+   {
+      return count;
    }
 }
 
@@ -463,7 +481,7 @@ class CardTable extends JFrame {
    GameModel gameModel;
    CardGameFramework cardGameFramework;
 
-   public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
+   public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea, pnlTimer;
 
    public CardTable(String title, GameModel gameModel, CardGameFramework cardGameFramework, int numCardsPerHand) 
    {
@@ -515,6 +533,13 @@ class CardTable extends JFrame {
       c.gridy = 3;
       add(pnlHumanHand, c);    
 
+      // create a JPannel for the timer 
+      pnlTimer = new JPanel();
+      pnlTimer.setBackground(Color.WHITE);
+      c.gridx = 0;
+      c.gridy = 3;
+      add(pnlTimer, c);
+
       // CREATE LABELS ----------------------------------------------------
       //create a GUICard object so we can have access to methods getIcon() and getBackCardIcon()
       GUICard guiC = new GUICard();
@@ -525,10 +550,84 @@ class CardTable extends JFrame {
 
       int k = 0;
 
-      //add event listeners (mouse listener) to each human card / also determines who wins
-      for (k = 0; k < gameModel.getNumCardsPerHand(); k++)
+      addEventListeners();
+
+      // ADD LABELS TO PANELS -----------------------------------------
+      //add each Jlabel to its respective JPanel (pnlComputerHand or pnlHumanHand) from myCardTable 
+
+      for (k = 0; k < numCardsPerHand; k++)
       {
+         if (k < computerBackCardLabels.length && computerBackCardLabels[k] != null)
+            this.getPnlComputerHand().add(computerBackCardLabels[k]);
+         if (k < humanLabels.length && humanLabels[k] != null)
+            this.getPnlHumanHand().add(humanLabels[k]);
+      }
+      //this is the set up our play area is going to have as soon as we run the program
+      this.getPnlPlayArea().add(computerBackCardLabels[7]);
+      this.getPnlPlayArea().add(scores[0]);
+      this.getPnlPlayArea().add(computerBackCardLabels[8]);
+      this.getPnlPlayArea().add(playLabelText[0]);
+      this.getPnlPlayArea().add(scores[1]);
+      this.getPnlPlayArea().add(playLabelText[1]);
+   }
+
+   /**
+    * Helpers
+    */
+
+   void createJLabels()
+   {
+      computerLabels = new JLabel[gameModel.getNumCardsPerHand()];
+      computerBackCardLabels = new JLabel[GameModel.NUM_BACK_CARDS];
+      humanLabels = new JLabel[gameModel.getNumCardsPerHand()];    
+      playedCardLabels  = new JLabel[gameModel.getNumPlayers()]; 
+      playLabelText  = new JLabel[gameModel.getNumPlayers()];
+      scores = new JLabel[gameModel.getNumPlayers()];
+   }
+
+   void fillJLabels()
+   {
+      final int numCardsPerHand = gameModel.getNumCardsPerHand();
+      final int numPlayers = gameModel.getNumPlayers();
+
+      int k;
+
+      //create JLabels for computer and human cards, we need 7 for each
+      for(k = 0; k < numCardsPerHand; k++)
+      {
+         computerLabels[k] = new JLabel(GUICard.getIcon(cardGameFramework.getHand(0).inspectCard(k)));
+         humanLabels[k] = new JLabel(GUICard.getIcon(cardGameFramework.getHand(1).inspectCard(k)));
+      }
+      //create JLabels for the back cards, we need 9
+      for(k = 0; k < GameModel.NUM_BACK_CARDS; k++)
+      {
+         computerBackCardLabels[k] = new JLabel(GUICard.getBackCardIcon());
+      }
+
+      //create JLabels for the text and store them in appropriate array
+      for(k = 0; k < numPlayers; k++)
+      {
+         if(k == 0) playLabelText[k] = new JLabel("Computer", JLabel.CENTER);
+         if(k == 1) playLabelText[k] = new JLabel("You", JLabel.CENTER);
+      }
+      //create JLabels for the score
+      for(k = 0; k < numPlayers; k++)
+      {
+         if(k == 0) scores[k] = new JLabel("SCORE", JLabel.CENTER);
+         if(k == 1) scores[k] = new JLabel("0 - 0", JLabel.CENTER);
+      }
+   }
+
+   // add events listeners and check to see who wins
+   void addEventListeners()
+   {
+      for (int k = 0; k < gameModel.getNumCardsPerHand(); k++)
+      {
+         final int index = k;
+
          humanLabels[k].addMouseListener(new MouseAdapter(){
+
+            
             public void mousePressed(MouseEvent e, int k){
                //remove any card labels and text that are in the play area each time we play a card
                pnlPlayArea.remove(computerBackCardLabels[7]);
@@ -591,85 +690,30 @@ class CardTable extends JFrame {
                }
 
             }
-
+            
             private void updateGame()
             {
                final int computerScore = gameModel.getComputerScore();
                final int playerScore = gameModel.getPlayerScore();
-
-               if(computerScore + playerScore == gameModel.getNumCardsPerHand())
+               
+               gameModel.incrementCount();
+               if(computerScore + playerScore == gameModel.getNumCardsPerHand() || gameModel.getCount() == 7)
                {
                   if (computerScore > playerScore)
-                     JOptionPane.showMessageDialog(pnlPlayArea, "Game Over Computer Wins");     
+                  {
+                     JOptionPane.showMessageDialog(pnlPlayArea, "Computer Wins");
+                  }
+                  else if(computerScore < playerScore)
+                  {
+                     JOptionPane.showMessageDialog(pnlPlayArea, "You Win!");
+                  }
                   else
-                     JOptionPane.showMessageDialog(pnlPlayArea, "Game Over You Win!");
+                  {
+                     JOptionPane.showMessageDialog(pnlPlayArea, "Draw!");
+                  }
                }
             }
-         });//end mouselistener
-      }//end for loop
-      // ADD LABELS TO PANELS -----------------------------------------
-      //add each Jlabel to its respective JPanel (pnlComputerHand or pnlHumanHand) from myCardTable 
-
-      for (k = 0; k < numCardsPerHand; k++)
-      {
-         if (k < computerBackCardLabels.length && computerBackCardLabels[k] != null)
-            this.getPnlComputerHand().add(computerBackCardLabels[k]);
-         if (k < humanLabels.length && humanLabels[k] != null)
-            this.getPnlHumanHand().add(humanLabels[k]);
-      }
-      //this is the set up our play area is going to have as soon as we run the program
-      this.getPnlPlayArea().add(computerBackCardLabels[7]);
-      this.getPnlPlayArea().add(scores[0]);
-      this.getPnlPlayArea().add(computerBackCardLabels[8]);
-      this.getPnlPlayArea().add(playLabelText[0]);
-      this.getPnlPlayArea().add(scores[1]);
-      this.getPnlPlayArea().add(playLabelText[1]);
-   }
-
-   /**
-    * Helpers
-    */
-
-   void createJLabels()
-   {
-      computerLabels = new JLabel[gameModel.getNumCardsPerHand()];
-      computerBackCardLabels = new JLabel[GameModel.NUM_BACK_CARDS];
-      humanLabels = new JLabel[gameModel.getNumCardsPerHand()];  
-      playedCardLabels  = new JLabel[gameModel.getNumPlayers()]; 
-      playLabelText  = new JLabel[gameModel.getNumPlayers()];
-      scores = new JLabel[gameModel.getNumPlayers()];
-   }
-
-   void fillJLabels()
-   {
-      final int numCardsPerHand = gameModel.getNumCardsPerHand();
-      final int numPlayers = gameModel.getNumPlayers();
-
-      int k;
-
-      //create JLabels for computer and human cards, we need 7 for each
-      for(k = 0; k < numCardsPerHand; k++)
-      {
-         computerLabels[k] = new JLabel(GUICard.getIcon(cardGameFramework.getHand(0).inspectCard(k)));
-         humanLabels[k] = new JLabel(GUICard.getIcon(cardGameFramework.getHand(1).inspectCard(k)));
-      }
-      //create JLabels for the back cards, we need 9
-      for(k = 0; k < GameModel.NUM_BACK_CARDS; k++)
-      {
-         computerBackCardLabels[k] = new JLabel(GUICard.getBackCardIcon());
-      }
-
-      //create JLabels for the text and store them in appropriate array
-      for(k = 0; k < numPlayers; k++)
-      {
-         if(k == 0) playLabelText[k] = new JLabel("Computer", JLabel.CENTER);
-         if(k == 1) playLabelText[k] = new JLabel("You", JLabel.CENTER);
-      }
-      //create JLabels for the score
-      for(k = 0; k < numPlayers; k++)
-      {
-         if(k == 0) scores[k] = new JLabel("SCORE", JLabel.CENTER);
-         if(k == 1) scores[k] = new JLabel("0 - 0", JLabel.CENTER);
+         });
       }
    }
 
@@ -688,15 +732,32 @@ class CardTable extends JFrame {
    }
 
 
+   /**
+    * 
+    * @return
+    */
    public JPanel getPnlHumanHand()
    {
       return pnlHumanHand;
    }
 
 
+   /**
+    * 
+    * @return
+    */
    public JPanel getPnlPlayArea()
    {
       return pnlPlayArea;
+   }
+
+   /**
+    * 
+    * @return
+    */
+   public JPanel getPnlTimer()
+   {
+      return pnlTimer;
    }
 }
 
