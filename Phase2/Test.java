@@ -14,14 +14,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 
-import javax.swing.BorderFactory;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
-
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 
 /**
  * 
@@ -495,7 +489,6 @@ class CardTable extends JFrame {
    static JLabel[] computerLabels;
    static JLabel[] computerBackCardLabels;
    static JLabel[] humanLabels;  
-   static JLabel[] humanLabelsCopy;
    static JLabel[] playedCardLabels;
    static JLabel[] playLabelText;
    static JLabel[] scores;
@@ -647,7 +640,7 @@ class CardTable extends JFrame {
       {
          final int index = k;
 
-         humanLabelsCopy[k].addMouseListener(new MouseAdapter(){
+         humanLabels[k].addMouseListener(new MouseAdapter(){
 
             
             public void mousePressed(MouseEvent e, int k){
