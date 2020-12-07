@@ -1,11 +1,15 @@
 package Phase2;
 
 import javax.swing.*;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Random;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -416,6 +420,29 @@ class CardTableController
       cardTable.setLocationRelativeTo(null);
       cardTable.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+      
+   // create a timer object
+      Timer t = new Timer();
+      // add the the panel from the timer object onto myCardTable
+      cardTable.getPnlTimer().add(t.getPanel());
+      // add an event listener to the start button
+      t.getBtnStart().addActionListener(new ActionListener() {
+         public void actionPerformed(ActionEvent e) {
+           try{
+             t.start();
+           }
+           catch(Exception ex){
+             t.myresume();
+           }
+          }
+       });
+       // add an event listener to the stop button
+       t.getBtnStop().addActionListener(new ActionListener() {
+         public void actionPerformed(ActionEvent e) {
+             t.mysuspend();
+          }
+       });
+       
       // show everything to the user
       cardTable.setVisible(true);
    }
@@ -461,7 +488,7 @@ class CardTable extends JFrame {
    GameModel gameModel;
    CardGameFramework cardGameFramework;
 
-   public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
+   public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea, pnlTimer;
 
    public CardTable(String title, GameModel gameModel, CardGameFramework cardGameFramework, int numCardsPerHand) 
    {
@@ -686,15 +713,32 @@ class CardTable extends JFrame {
    }
 
 
+   /**
+    * 
+    * @return
+    */
    public JPanel getPnlHumanHand()
    {
       return pnlHumanHand;
    }
 
 
+   /**
+    * 
+    * @return
+    */
    public JPanel getPnlPlayArea()
    {
       return pnlPlayArea;
+   }
+   
+   /**
+    * 
+    * @return
+    */
+   public JPanel getPnlTimer()
+   {
+      return pnlTimer;
    }
 }
 
@@ -1073,6 +1117,135 @@ class GUICard
          iconsLoaded = true;  
       }  
       return iconBack;
+   }
+}
+
+/**
+ * Timer Class
+ * @author Miguel Nunez
+ *
+ */
+class Timer extends Thread 
+{
+   private boolean suspendFlag;
+
+   public JFrame frame;
+   public JPanel panel;
+   public JLabel label;
+   public JButton btnStart, btnStop;
+
+   public Timer() 
+   {
+      suspendFlag = false;
+
+      panel = new JPanel();
+      panel.setBackground(Color.WHITE);
+      panel.setLayout(new GridBagLayout());        
+      GridBagConstraints gbc = new GridBagConstraints();
+      gbc.weighty = 1;
+
+      label = new JLabel("00:00");
+      label.setFont(new Font("Sans", Font.BOLD, 18));
+      gbc.gridwidth = 2;
+      gbc.gridx = 0;
+      gbc.gridy = 0;
+      panel.add(label, gbc);
+
+      btnStart = new JButton("Start");
+      btnStart.setFocusPainted(false);
+      gbc.gridwidth = 1;
+      gbc.gridx = 0;
+      gbc.gridy = 1;
+      panel.add(btnStart, gbc);
+
+      btnStop = new JButton("Stop");
+      btnStop.setFocusPainted(false);
+      gbc.gridx = 1;
+      gbc.gridy = 1;
+      panel.add(btnStop, gbc);
+   }
+
+   public void run()
+   { 
+      boolean isTrue = true;
+      Long seconds = 0L;
+      Long minutes = 0L;
+
+      try
+      {
+         while(isTrue)
+         {
+            doNothing();
+            seconds++;
+            if(seconds == 60)
+            {
+               seconds = 0L;
+            }
+            if((seconds % 60) == 0)
+            {
+               minutes++;
+            }
+            // this adds a zero in the front of the second/minute if its less than 10
+            if(minutes < 10)
+               if(seconds < 10)
+                  label.setText(String.valueOf("0" + minutes +":"+ "0" + seconds));
+               else
+                  label.setText(String.valueOf("0" + minutes +":"+ seconds));
+            else
+               if(seconds < 10)
+                  label.setText(String.valueOf(minutes +":"+ "0" + seconds));
+               else
+                  label.setText(String.valueOf(minutes +":"+ seconds));
+
+            synchronized(this)
+            {
+               while(suspendFlag)
+               {
+                  wait();
+               }
+            }
+         }//end while loop       
+      }//end try
+      catch (InterruptedException ex)
+      {
+         System.out.println("interrupted");
+      }
+   }
+
+   public void doNothing() throws InterruptedException
+   {
+      Thread.sleep(1000);
+   }
+
+   synchronized void mysuspend()
+   {
+      suspendFlag = true;
+   }
+
+   synchronized void myresume()
+   { 
+      suspendFlag = false;
+      notify();
+   }
+
+   public JPanel getPanel()
+   {
+      return panel;
+   }
+
+   public JLabel getLabel()
+   {
+      return label;
+   }
+
+   public JButton getBtnStart()
+   {
+      return btnStart;
+   }
+
+   public JButton getBtnStop()
+   {
+      return btnStop;
    }
 }
 
