@@ -430,6 +430,8 @@ class CardTableController
       //create a GUICard object so we can have access to methods getIcon() and getBackCardIcon()
       GUICard guiC = new GUICard();
 
+      createJLabels();
+      
       fillJLabels();
 
       //add event listeners (mouse listener) to each human card / also determines who wins
