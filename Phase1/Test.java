@@ -28,7 +28,7 @@ import javax.swing.ImageIcon;
 /**
  * 
  * Test Class
- *
+ * @author Alonzo Machiraju
  */
 
 public class Test
@@ -59,7 +59,7 @@ public class Test
 /**
  * 
  * CardGameFramework Class
- *
+ * @author Jesse Cecil
  */
 
 class CardGameFramework
@@ -229,6 +229,7 @@ class CardGameFramework
 
 /**
  * CardGameModel Class
+ * @author Alonzo Machiraju
  */
 
 class GameModel 
@@ -259,6 +260,9 @@ class GameModel
       computerScore++;
    }
    
+   /**
+    * Increase count of rounds by 1
+    */
    public void incrementCount()
    {
       count++;
@@ -271,6 +275,14 @@ class GameModel
    {
       playerScore = 0;
       computerScore = 0;
+   }
+   
+   /**
+    * Reset round counter
+    */
+   public void resetCount()
+   {
+      count = 0;
    }
 
    /**
@@ -366,14 +378,14 @@ class GameModel
 /**
  * 
  * CardTableController Class
- *
+ * @author Alonzo Machiraju
  */
 
 class CardTableController
 {   
    static CardGameFramework lowCardGame;
 
-   CardTable cardTable;
+   static CardTable cardTable;
 
    GameModel gameModel = new GameModel();
 
@@ -414,7 +426,6 @@ class CardTableController
     */
    public void init()
    {
-      int k;
       int numPacksPerDeck = 1;
       int numJokersPerPack = 2;
       int numUnusedCardsPerPack = 0;
@@ -467,6 +478,7 @@ class CardTableController
 /**
  * 
  * CardTable Class
+ * @author Miguel Nunez
  * This class is the view of the MVC paradigm
  */
 
@@ -481,7 +493,7 @@ class CardTable extends JFrame {
    GameModel gameModel;
    CardGameFramework cardGameFramework;
 
-   public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea, pnlTimer;
+   public JPanel pnlComputerHand, pnlHumanHand, pnlPlayArea;
 
    public CardTable(String title, GameModel gameModel, CardGameFramework cardGameFramework, int numCardsPerHand) 
    {
@@ -533,19 +545,11 @@ class CardTable extends JFrame {
       c.gridy = 3;
       add(pnlHumanHand, c);    
 
-      // create a JPannel for the timer 
-      pnlTimer = new JPanel();
-      pnlTimer.setBackground(Color.WHITE);
-      c.gridx = 0;
-      c.gridy = 3;
-      add(pnlTimer, c);
-
       // CREATE LABELS ----------------------------------------------------
       //create a GUICard object so we can have access to methods getIcon() and getBackCardIcon()
       GUICard guiC = new GUICard();
 
       createJLabels();
-
       fillJLabels();
 
       int k = 0;
@@ -625,9 +629,7 @@ class CardTable extends JFrame {
       {
          final int index = k;
 
-         humanLabels[k].addMouseListener(new MouseAdapter(){
-
-            
+         humanLabels[index].addMouseListener(new MouseAdapter(){
             public void mousePressed(MouseEvent e, int k){
                //remove any card labels and text that are in the play area each time we play a card
                pnlPlayArea.remove(computerBackCardLabels[7]);
@@ -723,7 +725,7 @@ class CardTable extends JFrame {
 
    /**
     * 
-    * @return
+    * @return Panel used for computer player's hand
     */
 
    public JPanel getPnlComputerHand()
@@ -734,7 +736,7 @@ class CardTable extends JFrame {
 
    /**
     * 
-    * @return
+    * @return Panel used for human player's hand
     */
    public JPanel getPnlHumanHand()
    {
@@ -744,27 +746,18 @@ class CardTable extends JFrame {
 
    /**
     * 
-    * @return
+    * @return Panel used for play area
     */
    public JPanel getPnlPlayArea()
    {
       return pnlPlayArea;
-   }
-
-   /**
-    * 
-    * @return
-    */
-   public JPanel getPnlTimer()
-   {
-      return pnlTimer;
    }
 }
 
 /**
  * 
  * Deck Class
- *
+ * @author Alonzo
  */
 
 class Deck
